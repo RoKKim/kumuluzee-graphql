@@ -59,7 +59,7 @@ public class SkipTestListener implements IInvokedMethodListener {
     }
 
     /**
-     * From: https://github.com/smallrye/smallrye-graphql/blob/1.0.14/server/tck/src/test/java/io/smallrye/graphql/TestInterceptor.java
+     * Taken from <a href="https://github.com/smallrye/smallrye-graphql/blob/1.0.14/server/tck/src/test/java/io/smallrye/graphql/TestInterceptor.java"/>TestInterceptor.java</a>
      */
     private TestData getExecutionTestData(Object[] parameters) {
         for (Object param : parameters) {

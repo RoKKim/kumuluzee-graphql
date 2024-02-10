@@ -27,6 +27,7 @@ import com.kumuluz.ee.common.dependencies.EeExtensionDef;
 import com.kumuluz.ee.common.wrapper.KumuluzServerWrapper;
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
 import com.kumuluz.ee.graphql.ui.servlets.GraphQLUIServlet;
+import com.kumuluz.ee.graphql.ui.utils.GraphQLUIUtils;
 import com.kumuluz.ee.jetty.JettyServletServer;
 
 import java.util.logging.Logger;
@@ -78,25 +79,17 @@ public class GraphQLUIExtension implements Extension {
             }
 
             if (configurationUtil.getBoolean("kumuluzee.graphql.ui.enabled").orElse(true)) {
-                String mapping = configurationUtil.get("kumuluzee.graphql.ui.mapping").orElse("graphiql");
+                String path = GraphQLUIUtils.getPath("kumuluzee.graphql.ui.mapping", "graphiql");
 
-                // strip "/"
-                while (mapping.startsWith("/")) {
-                    mapping = mapping.substring(1);
-                }
-                while (mapping.endsWith("/")) {
-                    mapping = mapping.substring(0, mapping.length() - 1);
-                }
-                mapping = "/" + mapping;
-
-                LOG.info("GraphQL UI registered on " + mapping + " (servlet context is implied).");
+                LOG.info("GraphQL UI registered on " + path + " (servlet context is implied).");
 
                 JettyServletServer server = (JettyServletServer) kumuluzServerWrapper.getServer();
-                server.registerServlet(GraphQLUIServlet.class, mapping + "/*");
+                server.registerServlet(GraphQLUIServlet.class, path + "/*");
 
                 LOG.info("GraphQL UI extension initialized.");
             } else {
-                LOG.info("GraphQL UI disabled. You can enable it explicitly by setting field kumuluzee.graphql.ui.enabled to true.");
+                LOG.info(
+                        "GraphQL UI disabled. You can enable it explicitly by setting field kumuluzee.graphql.ui.enabled to true.");
             }
         }
     }

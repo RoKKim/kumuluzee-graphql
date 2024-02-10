@@ -22,8 +22,8 @@
 package com.kumuluz.ee.graphql.ui.servlets;
 
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
+import com.kumuluz.ee.graphql.ui.utils.GraphQLUIUtils;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.io.ByteArrayOutputStream;
+import java.util.ResourceBundle;
 
 /**
  * GraphQLUIServlet class - HttpServlet, that serves graphiql.html to user
@@ -42,71 +44,112 @@ import java.net.URI;
 public class GraphQLUIServlet extends HttpServlet {
 
     private String graphQlPath = null;
+    private String graphQlUiPath = null;
+    private static final ResourceBundle versionsBundle = ResourceBundle
+            .getBundle("META-INF/kumuluzee/graphql-ui/versions");
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         ConfigurationUtil configurationUtil = ConfigurationUtil.getInstance();
+        String contextPath = configurationUtil.get("kumuluzee.server.context-path").orElse("");
 
         if (this.graphQlPath == null) {
-            String contextPath = configurationUtil.get("kumuluzee.server.context-path").orElse("");
-            String path = configurationUtil.get("kumuluzee.graphql.mapping").orElse("/graphql");
-
-            if (contextPath.endsWith("/")) {
-                contextPath = contextPath.substring(0, contextPath.length() - 1);
-            }
-
-            if (!path.startsWith("/")) {
-                path = "/" + path;
-            }
-
-            path = contextPath + path;
-
-            try {
-                URI u = new URI(path);
-
-                if (u.isAbsolute()) {
-                    resp.getWriter().println("URL must be relative. Extension not initialized.");
-                    return;
-                }
-            } catch (Exception E) {
-                resp.getWriter().println("Malformed url: " + path + ". Extension not initialized.");
+            this.graphQlPath = initializePath(resp, contextPath, "kumuluzee.graphql.mapping", "graphql");
+            if (this.graphQlPath == null) {
                 return;
             }
-
-            if (path.charAt(0) != '/') {
-                path = '/' + path;
-            }
-
-            graphQlPath = path;
         }
 
+        if (this.graphQlUiPath == null) {
+            this.graphQlUiPath = initializePath(resp, contextPath, "kumuluzee.graphql.ui.mapping", "graphiql");
+            if (this.graphQlUiPath == null) {
+                return;
+            }
+        }
         if (req.getPathInfo() == null) {
             // no trailing slash, redirect to trailing slash in order to fix relative requests
             resp.sendRedirect(req.getContextPath() + req.getServletPath() + "/");
             return;
         }
 
-        if ("/main.js".equals(req.getPathInfo())) {
-            resp.setContentType("application/javascript");
-            // inject _kumuluzee_graphql_path variable into js
-            sendFile(resp, "main.js", "_kumuluzee_graphql_path = \"" + graphQlPath + "\";\n");
+        // if the request is at base path, send index.html
+        if (req.getPathInfo().equals("/")) {
+            sendFile(resp, "index.html", graphQlPath, graphQlUiPath);
         } else {
-            sendFile(resp, "index.html", null);
+            String filePath = req.getPathInfo();
+            if (filePath.startsWith("/")) {
+                filePath = filePath.substring(1);
+            }
+            sendFile(resp, filePath, graphQlPath, graphQlUiPath);
         }
     }
 
-    private void sendFile(HttpServletResponse resp, String file, String prepend) throws IOException {
-        InputStream in = this.getClass().getResourceAsStream("/html/" + file);
-        OutputStream out = resp.getOutputStream();
+    private String initializePath(HttpServletResponse resp, String contextPath, String configKey,
+                                  String defaultMapping) throws IOException {
+        String path = GraphQLUIUtils.getPath(configKey, defaultMapping);
+        path = contextPath + path;
 
-        if (prepend != null) {
-            out.write(prepend.getBytes());
+        try {
+            URI u = new URI(path);
+            if (u.isAbsolute()) {
+                resp.getWriter().println("URL must be relative : " + path + ". Extension not initialized.");
+                return null;
+            }
+        } catch (Exception e) {
+            resp.getWriter().println("Malformed url: " + path + ". Extension not initialized.");
+            return null;
         }
 
-        byte[] buf = new byte[10000];
+        return path;
+    }
+
+    private void sendFile(HttpServletResponse resp, String file, String graphQlPath,
+                          String graphQlUiPath) throws IOException {
+        InputStream in;
+        // Determine the correct resource path based on the file name
+        if ("logo.png".equals(file)) {
+            in = this.getClass().getResourceAsStream("/html/" + file);
+        } else if ("favicon.ico".equals(file)) {
+            in = this.getClass().getResourceAsStream("/html/favicon-32x32.png");
+        } else {
+            // files are loaded resource folder of smallrye-graphql-ui dependency
+            in = this.getClass().getResourceAsStream("/META-INF/resources/graphql-ui/" + file);
+        }
+        OutputStream out = resp.getOutputStream();
+
+        byte[] buffer = new byte[10000];
         int length;
-        while ((length = in.read(buf)) > 0) {
-            out.write(buf, 0, length);
+
+        if ("render.js".equals(file) || "index.html".equals(file)) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            while ((length = in.read(buffer)) > 0) {
+                baos.write(buffer, 0, length);
+            }
+            baos.flush();
+
+            String content = baos.toString();
+
+            if ("render.js".equals(file)) {
+                content = content.replace("alt='SmallRye Graphql'", "alt='KumuluzEE GraphQL'");
+                if (graphQlPath != null) {
+                    content = content.replace("const api = '/graphql';", "const api = '" + graphQlPath + "';");
+                }
+                if (graphQlUiPath != null) {
+                    content = content.replace("const logo = '/graphql-ui';", "const logo = '" + graphQlUiPath + "';");
+                }
+            } else if ("index.html".equals(file)) {
+                content = content.replace(String.format("<title>SmallRye GraphQL (v%s)</title>",
+                                versionsBundle.getString("smallrye-graphql-version")),
+                        "<title>KumuluzEE GraphiQL</title>");
+            }
+
+            // write the modified content to the output stream
+            out.write(content.getBytes());
+        } else {
+            // directly write other files to the output stream
+            while ((length = in.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
         }
 
         in.close();

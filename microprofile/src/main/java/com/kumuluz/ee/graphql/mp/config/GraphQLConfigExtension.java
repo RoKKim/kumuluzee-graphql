@@ -27,6 +27,9 @@ import com.kumuluz.ee.common.dependencies.EeExtensionGroup;
 import com.kumuluz.ee.common.wrapper.KumuluzServerWrapper;
 import com.kumuluz.ee.configuration.ConfigurationSource;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Registers {@link KumuluzConfigMapper} configuration extension.
  *
@@ -37,11 +40,6 @@ import com.kumuluz.ee.configuration.ConfigurationSource;
 public class GraphQLConfigExtension implements ConfigExtension {
 
     @Override
-    public ConfigurationSource getConfigurationSource() {
-        return new KumuluzConfigMapper();
-    }
-
-    @Override
     public void load() {
 
     }
@@ -49,5 +47,10 @@ public class GraphQLConfigExtension implements ConfigExtension {
     @Override
     public void init(KumuluzServerWrapper kumuluzServerWrapper, EeConfig eeConfig) {
 
+    }
+
+    @Override
+    public List<ConfigurationSource> getConfigurationSources() {
+        return Collections.singletonList(new KumuluzConfigMapper());
     }
 }

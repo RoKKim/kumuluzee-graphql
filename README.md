@@ -5,20 +5,22 @@
 > Kick-start your GraphQL server development.
 
 KumuluzEE GraphQL project enables you to easily create your own GraphQL server with a few simple annotations and is
-fully compliant with [MicroProfile GraphQL Sepcification](https://github.com/eclipse/microprofile-graphql). Using 
+fully compliant with [MicroProfile GraphQL Sepcification](https://github.com/eclipse/microprofile-graphql). Using
 this extension requires understanding of the basic GraphQL concepts.
 
 Read about GraphQL: [GraphQL](http://graphql.org/learn/).
 
-This project is built upon the [SmallRye GraphQL implementation](https://github.com/smallrye/smallrye-graphql). 
+This project is built upon the [SmallRye GraphQL implementation](https://github.com/smallrye/smallrye-graphql).
 
-> **For 1.0.x users, see the following README: [kumuluzee-graphql](https://github.com/kumuluz/kumuluzee-graphql/tree/master/core)**
+> **For 1.0.x users, see the following
+README: [kumuluzee-graphql](https://github.com/kumuluz/kumuluzee-graphql/tree/master/core)**
 >
 > For new users, using MicroProfile based implementation (this README) is recommended.
 
 ## Usage
 
 You can enable KumuluzEE GraphQL by adding the following dependency to the project:
+
 ```xml
 <dependency>
     <groupId>com.kumuluz.ee.graphql</groupId>
@@ -29,9 +31,10 @@ You can enable KumuluzEE GraphQL by adding the following dependency to the proje
 
 When KumuluzEE GraphQL is included in the project, you can start developing your GraphQL services.
 
-### Registering GraphQL Resource 
+### Registering GraphQL Resource
 
-The `@GraphQLApi` annotation must be used on the classes that define GraphQL related functions (queries, mutations, etc.).
+The `@GraphQLApi` annotation must be used on the classes that define GraphQL related functions (queries, mutations,
+etc.).
 All GraphQL annotated functions in annotated classes will be added to your GraphQL schema.
 
 ```java
@@ -39,8 +42,9 @@ All GraphQL annotated functions in annotated classes will be added to your Graph
 public class CustomerResource {...}
 ```
 
-### Defining GraphQL queries 
-The `@Query` annotation will register your Java function as a Query function in GraphQL. All types and 
+### Defining GraphQL queries
+
+The `@Query` annotation will register your Java function as a Query function in GraphQL. All types and
 parameters will be automatically converted to GraphQL types and added to the schema. You can override the query name
 (which defaults to the function name without `get` or `set` prefix) or add a description to the query.
 
@@ -52,7 +56,7 @@ public class HelloWorld {
     public String hello() {
         return "Hello world!";
     }
-    
+
     @Query
     @Name("greet")
     @Description("Greets person.")
@@ -63,10 +67,12 @@ public class HelloWorld {
 ```
 
 ### Defining GraphQL mutations
-The `@Mutation` annotation is used for defining mutations. It is used the same way as `@Query` annotation. 
-The only difference is, that mutations are used for changing persistent state, while queries only retrieve data. 
 
-More information on this can be found in GraphQL documentation: [Queries and mutations](http://graphql.org/learn/queries/).
+The `@Mutation` annotation is used for defining mutations. It is used the same way as `@Query` annotation.
+The only difference is, that mutations are used for changing persistent state, while queries only retrieve data.
+
+More information on this can be found in GraphQL
+documentation: [Queries and mutations](http://graphql.org/learn/queries/).
 
 ```java
 @GraphQLApi
@@ -78,7 +84,7 @@ public class CustomerResource {
     public Customer saveCustomer(Customer customer) {
         return customerService.save(customer);
     }
-    
+
     @Mutation
     @Name("saveOrder")
     @Description("Saves the order to the database.")
@@ -100,11 +106,13 @@ public Integer getCustomerCount(@Name("onlyRegistered") Boolean registered) {
 }
 ```
 
-> Avoid using primitive types as parameters (int, double...), because they cannot be `null`. If you use them, please provide their default values with `@DefaultValue` annotation.
+> Avoid using primitive types as parameters (int, double...), because they cannot be `null`. If you use them, please
+> provide their default values with `@DefaultValue` annotation.
 
 ### Annotation `@Ignore`
 
 This annotation can be used to ignore a certain field.
+
 ```java
 public class Customer {
     @Ignore
@@ -115,7 +123,7 @@ public class Customer {
 ### Annotation `@NonNull`
 
 If you want to mark a parameter as required, you can annotate the type with `@NonNull` annotation.
-It can be also used on lists: 
+It can be also used on lists:
 
 ```java
 // non null list of non null students
@@ -123,7 +131,7 @@ It can be also used on lists:
 
 @Mutation
 public String someMutation(@NonNull String field) {
-  return field;
+    return field;
 } 
 ```
 
@@ -135,27 +143,28 @@ new field `referrer` (of type `String`) on the `Customer` type:
 ```java
 @GraphQLApi
 public class CustomerResource {
-    
+
     @Name("referrer")
     public String getReferrerForCustomer(@Source Customer customer) {
         return refererApi.getReferer(customer);
-    }   
+    }
 }
 ```
 
 The `@Source` annotation can also be used to resolve fields in batches. This is commonly referred to as the dataloader
-pattern and is used to solve the N+1 problem. The following example would generate exactly the same schema as the example
+pattern and is used to solve the N+1 problem. The following example would generate exactly the same schema as the
+example
 above. The only difference is that in the example above the method is called once for every customer returned and in the
 following example the method is called once for all customers that are returned.
 
 ```java
 @GraphQLApi
 public class CustomerResource {
-    
+
     @Name("referrer")
     public List<String> getReferrerForCustomer(@Source List<Customer> customers) {
         return refererApi.getReferersForMultipleCustomers(customers);
-    }   
+    }
 }
 ```
 
@@ -164,12 +173,12 @@ Another use of the `@Source` annotation is defining nested queries on types. For
 ```java
 @GraphQLApi
 public class CustomerResource {
-    
+
     @Name("paidOrders")
     public List<Order> getPaidOrders(@Source Customer customer) {
         return customer.getOrders().stream()
                     .filter(o -> o.isPaid()).collect(Collectors.toList());
-    }   
+    }
 }
 ```
 
@@ -179,13 +188,13 @@ example above:
 ```java
 @GraphQLApi
 public class CustomerResource {
-    
+
     @Name("paidOrders")
     public List<List<Order>> getPaidOrders(@Source List<Customer> customers) {
         return customers.stream.map(c -> c.getOrders().stream()
                         .filter(o -> o.isPaid()).collect(Collectors.toList()))
                     .collect(Collectors.toList());
-    }   
+    }
 }
 ```
 
@@ -194,11 +203,12 @@ public class CustomerResource {
 Exceptions can be thrown during query/mutation execution. The response will have the structure of the GraphQL error as
 defined in the GraphQL specification.
 
-By default, all messages from unchecked exceptions (except some defaults, see below) will be hidden for security reasons. You can override this behavior
-with the configuration key `kumuluzee.graphql.exceptions.show-error-message`. The message will be replaced with
-`Server Error` and can be set using the configuration key `kumuluzee.graphql.exceptions.default-error-message`.
-By default, all messages from checked exceptions will be shown. You can hide messages from exceptions with the
-configuration key `kumuluzee.graphql.exceptions.hide-error-message`. Example configuration:
+By default, all messages from unchecked exceptions (except some defaults, see below) will be hidden for security
+reasons. You can override this behavior with the configuration key `kumuluzee.graphql.exceptions.show-error-message`.
+The message will be replaced with `Server Error` and can be set using the configuration
+key `kumuluzee.graphql.exceptions.default-error-message`. By default, all messages from checked exceptions will be
+shown. You can hide messages from exceptions with the configuration
+key `kumuluzee.graphql.exceptions.hide-error-message`. Example configuration:
 
 ```yaml
 kumuluzee:
@@ -236,6 +246,7 @@ kumuluzee:
 GraphQL endpoint (`/graphql`) should be queried using a POST request. Request body should be a JSON object containing
 field `query` with the query that should be excecuted and optionally a field `variables` containing a map of GraphQL
 variables. For example:
+
 ```json
 HTTP POST localhost:8080/graphql
 Header: Content-Type: application/json
@@ -262,16 +273,47 @@ kumuluzee:
       include-introspection-types: true
 ```
 
+| `kumuluzee-graphql` configuration | Corresponding `smallrye-graphql` configuration      | Description                               | Default Value |
+|:----------------------------------|:----------------------------------------------------|:------------------------------------------|:--------------|
+| `include-scalars`                 | `smallrye.graphql.schema.includeScalars`            | Include Scalar definitions in the schema  | `true`        |
+| `include-schema-definition`       | `smallrye.graphql.schema.includeSchemaDefinition`   | Include Schema definition                 | `false`       |
+| `include-directives`              | `smallrye.graphql.schema.includeDirectives`         | Include directives in the schema          | `false`       |
+| `include-introspection-types`     | `smallrye.graphql.schema.includeIntrospectionTypes` | Include Introspection types in the schema | `false`       |
+
+For more detailed information on configuration refer to
+the [SmallRye GraphQL documentation](https://smallrye.io/smallrye-graphql/2.7.0/server_configuration/#from-smallrye-graphql).
+
 ### GraphQL endpoint mapping
 
-GraphQL server and schema will be served on `/graphql/` by default. You can change this with the KumuluzEE configuration
-framework by setting the following key:
+To extend the documentation with information about setting the GraphQL endpoint mapping to the root (`/`), you can
+include an additional paragraph and modify the YAML configuration example. This shows how the mapping can be customized
+or set to the root, depending on the desired endpoint structure. Below is the revised documentation section
+incorporating this update:
+
+---
+
+### GraphQL endpoint mapping
+
+The GraphQL server and schema will be served on `/graphql/` by default. You can change this with the KumuluzEE
+configuration framework by setting the following key:
 
 ```yaml
 kumuluzee:
   graphql:
     mapping: customers-api
 ```
+
+This configuration maps the GraphQL endpoint to `/customers-api/`. If you prefer to serve the GraphQL server and schema
+from the root (`/`), you can set the `mapping` key to an empty value as shown below:
+
+```yaml
+kumuluzee:
+  graphql:
+    mapping: /
+```
+
+By setting the `mapping` key to `/`, the GraphQL endpoint will be accessible directly from the root URL of your
+application, simplifying the URL structure for clients that interact with your GraphQL API.
 
 ## Annotation scanning for GraphQL schema generation
 
@@ -291,8 +333,8 @@ kumuluzee:
 ```
 
 If you are not sure if your configuration is correct you can try disabling scanning optimization. This will scan all
-dependencies but will drastically increase application startup time. Having this optimization disabled in production is not
-recommended. Disable optimized scanning by using the following configuration:
+dependencies but will drastically increase application startup time. Having this optimization disabled in production is
+not recommended. Disable optimized scanning by using the following configuration:
 
 ```yaml
 kumuluzee:
@@ -306,14 +348,14 @@ will output a verbose log of scanning configuration and progress.
 
 ## Adding Graph*i*QL (a GraphQL UI)
 
-Graph*i*QL is a querying tool for GraphQL application. 
+Graph*i*QL is a querying tool for GraphQL application.
 It is the Postman equivalent for GraphQL.
-You write your query, parameters and Graph*i*QL will send the request. 
+You write your query, parameters and Graph*i*QL will send the request.
 It also checks your query syntax and allows you to explore your schema graphically.
 More information can be found [here](https://github.com/graphql/graphiql).
 
 If you want to include GraphiQL to your project, include the following dependency:
-  
+
 ```xml
 <dependency>
     <groupId>com.kumuluz.ee.graphql</groupId>
@@ -332,6 +374,52 @@ kumuluzee:
       mapping: /api-ui
       enabled: false
 ```
+
+## Using Apollo Federation
+
+Apollo Federation is a scalable architecture for building a unified GraphQL API across multiple services, enabling teams
+to develop, deploy, and manage parts of the GraphQL schema independently without requiring a monolithic schema. This
+approach facilitates the development of a distributed graph that efficiently combines multiple subgraphs into a single
+GraphQL endpoint.
+
+In the context of KumuluzEE, Apollo Federation is activated by default to streamline the development of distributed
+GraphQL APIs, reflecting the platform's support for modern, microservices-based architectures. For cases where
+Federation is not needed or desired, you can simply disable it using the following configuration:
+
+```yaml
+kumuluzee:
+  graphql:
+    federation:
+      enabled: false
+```
+
+| `kumuluzee-graphql` configuration               | Corresponding `smallrye-graphql` configuration       | Description                                                              | Default Value |
+|:------------------------------------------------|:-----------------------------------------------------|:-------------------------------------------------------------------------|:--------------|
+| `federation.enabled`                            | `smallrye.graphql.federation.enabled`                | Enable or disable Apollo Federation                                      | `true`        |
+| `federation.enabled-federation-batch-resolving` | `smallrye.graphql.federation.batchResolving.enabled` | Enable batch resolving in Apollo Federation for performance optimization | `false`       |
+
+For more detailed information on configuration refer to
+the [SmallRye GraphQL documentation](https://smallrye.io/smallrye-graphql/2.7.0/federation/).
+
+For an example of Federation integration check out the following samples:
+
+- [kumuluzee-graphql-federation](https://github.com/kumuluz/kumuluzee-samples/tree/master/kumuluzee-graphql-federation)
+- [apollo-federation-subgraph-compatibility](https://github.com/apollographql/apollo-federation-subgraph-compatibility/tree/main/implementations/kumuluzee-graphql)
+
+### Connecting multiple Federated subgraphs
+
+To design a unified GraphQL API from multiple federated subgraphs, you can use solutions like **Apollo Router** or
+**Apollo Gateway**. These tools help in orchestrating multiple GraphQL services into a single data graph, enabling
+seamless query operations across different domains or services.
+
+- **Apollo Router** is a high-performance graph router optimized for running in production environments. It efficiently
+  routes queries to the appropriate subgraphs, enabling smooth operation of your federated graph.
+- **Apollo Gateway** serves as an intermediary that merges various GraphQL schemas from your federated services into a
+  unified schema. It abstracts the complexity of querying multiple services, making it easier for clients to consume
+  your APIs.
+
+For detailed guidance on setting up and choosing the right solution for your architecture, refer to the official [Apollo
+documentation](https://www.apollographql.com/docs/federation/building-supergraphs/router#choosing-a-router-library).
 
 ## Using kumuluzee-security on GraphQL queries
 
@@ -362,7 +450,7 @@ public class CustomerResource {
     @Query
     @PermitAll
     public List<Customer> getAllCustomers() {
-       return customerBean.getCustomers();
+        return customerBean.getCustomers();
     }
 
     @Query
@@ -491,16 +579,17 @@ query StudentsStartingWithJ {
 
 Recent changes can be viewed on Github on the [Releases Page](https://github.com/kumuluz/kumuluzee-graphql/releases).
 
-> **For 1.0.x users, see the following README: [kumuluzee-graphql](https://github.com/kumuluz/kumuluzee-graphql/tree/master/core)**
+> **For 1.0.x users, see the following
+README: [kumuluzee-graphql](https://github.com/kumuluz/kumuluzee-graphql/tree/master/core)**
 
 ## Contribute
 
 See the [contributing docs](https://github.com/kumuluz/kumuluzee-graphql/blob/master/CONTRIBUTING.md).
 
-When submitting an issue, please follow the 
+When submitting an issue, please follow the
 [guidelines](https://github.com/kumuluz/kumuluzee-graphql/blob/master/CONTRIBUTING.md#bugs).
 
-When submitting a bugfix, write a test that exposes the bug and fails before applying your fix. Submit the test 
+When submitting a bugfix, write a test that exposes the bug and fails before applying your fix. Submit the test
 alongside the fix.
 
 When submitting a new feature, add tests that cover the feature.

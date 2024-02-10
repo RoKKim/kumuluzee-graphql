@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Taken from https://github.com/graphql-java/graphql-java-http-example/blob/master/src/main/java/com/graphql/example/http/utill/QueryParameters.java
+ * Taken from <a href="https://github.com/graphql-java/graphql-java-http-example/blob/master/src/main/java/com/graphql/example/http/utill/QueryParameters.java">QueryParameters.java</a>
  * Edited by Domen Kajdic
  *
  * @author Domen Kajdic
@@ -60,11 +60,11 @@ public class QueryParameters {
     public static QueryParameters from(HttpServletRequest request) throws IOException {
         QueryParameters parameters = new QueryParameters();
         if ("POST".equalsIgnoreCase(request.getMethod())) {
-            if(request.getParameter("query") != null) {
+            if (request.getParameter("query") != null) {
                 parameters.query = request.getParameter("query");
                 parameters.operationName = request.getParameter("operationName");
                 parameters.variables = getVariables(request.getParameter("variables"));
-            } else if(request.getHeader("Content-Type").equals("application/graphql")) {
+            } else if (request.getHeader("Content-Type").equals("application/graphql")) {
                 parameters.query = request.getReader().lines().collect(Collectors.joining());
             } else {
                 Map<String, Object> json = readJSON(request);
@@ -89,7 +89,8 @@ public class QueryParameters {
         }
         try {
             Map<String, Object> vars = new ObjectMapper().readValue(String.valueOf(variables),
-                    new TypeReference<Map<String, Object>>() {});
+                    new TypeReference<Map<String, Object>>() {
+                    });
             return (vars != null) ? vars : Collections.emptyMap();
         } catch (JsonProcessingException e) {
             return Collections.emptyMap();
@@ -99,7 +100,8 @@ public class QueryParameters {
     private static Map<String, Object> readJSON(HttpServletRequest request) {
         String s = readPostBody(request);
         try {
-            Map<String, Object> json = new ObjectMapper().readValue(s, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> json = new ObjectMapper().readValue(s, new TypeReference<Map<String, Object>>() {
+            });
             return (json != null) ? json : Collections.emptyMap();
         } catch (JsonProcessingException e) {
             return Collections.emptyMap();

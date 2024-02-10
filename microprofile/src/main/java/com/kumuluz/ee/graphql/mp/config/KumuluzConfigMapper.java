@@ -57,8 +57,8 @@ public class KumuluzConfigMapper implements ConfigurationSource {
         CONFIG_MAP.put(ConfigKey.SCHEMA_INCLUDE_DIRECTIVES, "kumuluzee.graphql.schema.include-directives");
         CONFIG_MAP.put(ConfigKey.SCHEMA_INCLUDE_INTROSPECTION_TYPES, "kumuluzee.graphql.schema.include-introspection-types");
         CONFIG_MAP.put(ConfigKey.ENABLE_METRICS, "kumuluzee.graphql.metrics.enabled");
-        // CONFIG_MAP.put(ConfigKey.ENABLE_VALIDATION, "kumuluzee.graphql.bean-validation.enabled");
-        CONFIG_MAP.put("smallrye.graphql.validation.enabled", "kumuluzee.graphql.bean-validation.enabled");
+        CONFIG_MAP.put(ConfigKey.ENABLE_FEDERATION, "kumuluzee.graphql.federation.enabled");
+        CONFIG_MAP.put(ConfigKey.ENABLE_FEDERATION_BATCH_RESOLVING, "kumuluzee.graphql.federation.enabled-federation-batch-resolving");
 
         CONFIG_MAP_LIST.put("mp.graphql.hideErrorMessage", "kumuluzee.graphql.exceptions.hide-error-message");
         CONFIG_MAP_LIST.put("mp.graphql.showErrorMessage", "kumuluzee.graphql.exceptions.show-error-message");
@@ -77,18 +77,20 @@ public class KumuluzConfigMapper implements ConfigurationSource {
     @Override
     public void init(ConfigurationDispatcher configurationDispatcher) {
         configurationUtil = ConfigurationUtil.getInstance();
+        // Workaround because of https://github.com/smallrye/smallrye-graphql/issues/1995
+        System.setProperty(ConfigKey.ENABLE_FEDERATION, this.get(ConfigKey.ENABLE_FEDERATION).orElse("true"));
     }
 
     @Override
-    public Optional<String> get(String s) {
+    public Optional<String> get(String key) {
 
-        String mappedKey = CONFIG_MAP.get(s);
+        String mappedKey = CONFIG_MAP.get(key);
 
         if (mappedKey != null) {
             return configurationUtil.get(mappedKey);
         }
 
-        mappedKey = CONFIG_MAP_LIST.get(s);
+        mappedKey = CONFIG_MAP_LIST.get(key);
 
         if (mappedKey != null) {
             Optional<String> returnValue = configurationUtil.getList(mappedKey).map(ls -> String.join(",", ls));
@@ -107,67 +109,67 @@ public class KumuluzConfigMapper implements ConfigurationSource {
     }
 
     @Override
-    public Optional<Boolean> getBoolean(String s) {
+    public Optional<Boolean> getBoolean(String key) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<Integer> getInteger(String s) {
+    public Optional<Integer> getInteger(String key) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<Long> getLong(String s) {
+    public Optional<Long> getLong(String key) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<Double> getDouble(String s) {
+    public Optional<Double> getDouble(String key) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<Float> getFloat(String s) {
+    public Optional<Float> getFloat(String key) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<Integer> getListSize(String s) {
+    public Optional<Integer> getListSize(String key) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<List<String>> getMapKeys(String s) {
+    public Optional<List<String>> getMapKeys(String key) {
         return Optional.empty();
     }
 
     @Override
-    public void watch(String s) {
+    public void watch(String key) {
 
     }
 
     @Override
-    public void set(String s, String s1) {
+    public void set(String key, String value) {
 
     }
 
     @Override
-    public void set(String s, Boolean aBoolean) {
+    public void set(String key, Boolean value) {
 
     }
 
     @Override
-    public void set(String s, Integer integer) {
+    public void set(String key, Integer value) {
 
     }
 
     @Override
-    public void set(String s, Double aDouble) {
+    public void set(String key, Double value) {
 
     }
 
     @Override
-    public void set(String s, Float aFloat) {
+    public void set(String key, Float value) {
 
     }
 }

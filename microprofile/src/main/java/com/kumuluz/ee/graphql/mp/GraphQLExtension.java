@@ -77,11 +77,11 @@ public class GraphQLExtension implements Extension {
             try {
                 URI u = new URI(path);
 
-                if(u.isAbsolute()) {
-                    LOG.severe("URL must be relative. Extension not initialized.");
+                if (u.isAbsolute()) {
+                    LOG.severe("URL must be relative: " + path + ". Extension not initialized.");
                     return;
                 }
-            } catch(Exception E) {
+            } catch (Exception E) {
                 LOG.severe("Malformed url: " + path + ". Extension not initialized.");
                 return;
             }
@@ -95,8 +95,11 @@ public class GraphQLExtension implements Extension {
             }
 
             JettyServletServer server = (JettyServletServer) kumuluzServerWrapper.getServer();
-            server.registerServlet(SchemaServlet.class, "/" + path + "/schema.graphql");
-            server.registerServlet(ExecutionServlet.class, "/" + path + "/*");
+            // we allow for the path to be empty, since some of the testing requires it
+            String schemaServletPath = path.isEmpty() ? "/schema.graphql" : "/" + path + "/schema.graphql";
+            String executionServletPath = path.isEmpty() ? "/*" : "/" + path + "/*";
+            server.registerServlet(SchemaServlet.class, schemaServletPath);
+            server.registerServlet(ExecutionServlet.class, executionServletPath);
 
             LOG.info("GraphQL MP registered on /" + path + " (servlet context is implied).");
             LOG.info("GraphQL MP extension initialized.");

@@ -10,17 +10,16 @@
 
     <packaging>pom</packaging>
 
+    <name>KumuluzEE GraphQL Parent</name>
+    <description>
+        KumuluzEE GraphQL extension provides a layer around GraphQL server, that enables rapid schema development.
+    </description>
+
     <modules>
         <module>core</module>
         <module>graphql-ui</module>
         <module>microprofile</module>
     </modules>
-
-    <name>KumuluzEE GraphQL Parent</name>
-
-    <description>
-        KumuluzEE GraphQL extension provides a layer around GraphQL server, that enables rapid schema development.
-    </description>
 
     <inceptionYear>2018</inceptionYear>
 
@@ -45,9 +44,11 @@
         <!-- SmallRye (MP) -->
         <graphql-java-smallrye.version>21.3</graphql-java-smallrye.version>
         <microprofile-graphql.version>2.0</microprofile-graphql.version>
-        <smallrye-graphql.version>2.6.0</smallrye-graphql.version>
+        <!-- todo RokM upgrade to 2.8.0 once released -->
+        <smallrye-graphql.version>2.8.0-SNAPSHOT</smallrye-graphql.version>
         <kumuluzee-config-mp.version>3.0.0-SNAPSHOT</kumuluzee-config-mp.version>
         <classgraph.version>4.8.165</classgraph.version>
+        <validation.version>3.0.2</validation.version>
 
         <testng.version>7.8.0</testng.version>
         <arquillian.version>1.8.0.Final</arquillian.version>
@@ -81,6 +82,11 @@
             <name>Benjamin Kastelic</name>
             <email>kastelic.benjamin@gmail.com</email>
             <url>https://github.com/osbeorn</url>
+        </developer>
+        <developer>
+            <name>Rok Miklavčič</name>
+            <id>RoKKim</id>
+            <url>https://github.com/RoKKim</url>
         </developer>
     </developers>
 
@@ -134,6 +140,17 @@
                 <version>${smallrye-graphql.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.smallrye</groupId>
+                <artifactId>smallrye-graphql-client-generator</artifactId>
+                <version>${smallrye-graphql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.smallrye</groupId>
+                <artifactId>smallrye-graphql-ui-graphiql</artifactId>
+                <version>${smallrye-graphql.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
                 <groupId>io.leangen.graphql</groupId>
                 <artifactId>spqr</artifactId>
                 <version>${spqr.version}</version>
@@ -153,11 +170,15 @@
                 <artifactId>classgraph</artifactId>
                 <version>${classgraph.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.microprofile.graphql</groupId>
                 <artifactId>microprofile-graphql-api</artifactId>
                 <version>${microprofile-graphql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.validation</groupId>
+                <artifactId>jakarta.validation-api</artifactId>
+                <version>${validation.version}</version>
             </dependency>
 
             <!-- test -->
@@ -283,5 +304,14 @@
                 </executions>
             </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>io.smallrye</groupId>
+                    <artifactId>smallrye-graphql-maven-plugin</artifactId>
+                    <version>${smallrye-graphql.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>
